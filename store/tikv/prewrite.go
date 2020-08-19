@@ -175,7 +175,11 @@ func (action actionPrewrite) handleSingleBatch(c *twoPhaseCommitter, bo *Backoff
 		}
 		atomic.AddInt64(&c.getDetail().ResolveLockTime, int64(time.Since(start)))
 		if msBeforeExpired > 0 {
-			err = bo.BackoffWithMaxSleep(BoTxnLock, int(msBeforeExpired), errors.Errorf("2PC prewrite lockedKeys: %d", len(locks)))
+			errLocks := errors.Errorf("2PC prewrite lockedKeys: %d", len(locks))
+			if bo.vars.DisableLockBackOff {
+				return errLocks
+			}
+			err = bo.BackoffWithMaxSleep(BoTxnLock, int(msBeforeExpired), errLocks)
 			if err != nil {
 				return errors.Trace(err)
 			}
