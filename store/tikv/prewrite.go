@@ -177,7 +177,7 @@ func (action actionPrewrite) handleSingleBatch(c *twoPhaseCommitter, bo *Backoff
 		if msBeforeExpired > 0 {
 			errLocks := errors.Errorf("2PC prewrite lockedKeys: %d", len(locks))
 			if bo.vars.DisableLockBackOff {
-				return errLocks
+				return errors.Trace(errLocks)
 			}
 			err = bo.BackoffWithMaxSleep(BoTxnLock, int(msBeforeExpired), errLocks)
 			if err != nil {
